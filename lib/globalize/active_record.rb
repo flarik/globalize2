@@ -102,9 +102,11 @@ module Globalize
       end
 
       def required_attributes
-        validations = reflect_on_all_validations.select do |validation|
-          validation.macro == :validates_presence_of
-        end.map(&:name)
+         validations = reflect_on_all_validations.select do |validation|
+            validation.macro == :validates_presence_of 
+         end.map(&:name).collect { |field|
+            translated_attribute_names.include?(field) ? field : nil
+         }.compact
       end
 
       def respond_to?(method, *args, &block)
