@@ -58,11 +58,17 @@ module Globalize
                                 :extend      => HasManyExtensions
 
         named_scope :with_translations, lambda { |locale|
-          conditions = required_attributes.map do |attribute|
-            "#{quoted_translation_table_name}.#{attribute} IS NOT NULL"
-          end
-          conditions << "#{quoted_translation_table_name}.locale = ?"
-          { :include => :translations, :conditions => [conditions.join(' AND '), locale] }
+
+          locale ||= I18n.locale
+
+          conditions = [ "#{quoted_translation_table_name}.locale = ?", locale.to_s ]
+
+          required_attributes.each { |attribute| 
+            conditions[0] << " AND #{quoted_translation_table_name}.#{attribute} IS NOT ?"
+            conditions << nil
+          }
+
+          { :include => :translations, :conditions => conditions }
         }
 
         attr_names.each { |attr_name| translated_attr_accessor(attr_name) }
